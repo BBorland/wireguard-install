@@ -282,6 +282,23 @@ net.ipv6.conf.all.forwarding = 1" >/etc/sysctl.d/wg.conf
 }
 
 function newClient() {
+	CLIENT_NAME="$1"
+    	SERVER_PORT=$(shuf -i49152-65535 -n1)
+    	SERVER_WG_NIC="wg0"
+    	SERVER_WG_IPV4="10.66.66.1"
+    	SERVER_WG_IPV6="fd42:42:42::1"
+    	CLIENT_DNS_1="1.1.1.1"
+    	CLIENT_DNS_2="1.0.0.1"
+    	ALLOWED_IPS="0.0.0.0/0,::/0"
+	SERVER_PUB_IP=$(ip -4 addr | sed -ne 's|^.* inet \([^/]*\)/.* scope global.*$|\1|p' | awk '{print $1}' | head -1)
+	if [[ -z ${SERVER_PUB_IP} ]]; then
+		# Detect public IPv6 address
+		SERVER_PUB_IP=$(ip -6 addr | sed -ne 's|^.* inet6 \([^/]*\)/.* scope global.*$|\1|p' | head -1)
+	fi
+
+	 # Detect public interface and pre-fill for the user
+	SERVER_PUB_NIC="$(ip -4 route ls | grep default | grep -Po '(?<=dev )(\S+)' | head -1)"
+ 	
 	# If SERVER_PUB_IP is IPv6, add brackets if missing
 	if [[ ${SERVER_PUB_IP} =~ .*:.* ]]; then
 		if [[ ${SERVER_PUB_IP} != *"["* ]] || [[ ${SERVER_PUB_IP} != *"]"* ]]; then
@@ -290,12 +307,7 @@ function newClient() {
 	fi
 	ENDPOINT="${SERVER_PUB_IP}:${SERVER_PORT}"
 
-	echo ""
-	echo "Client configuration"
-	echo ""
-	echo "The client name must consist of alphanumeric character(s). It may also include underscores or dashes and can't exceed 15 chars."
-
-	until [[ ${CLIENT_NAME} =~ ^[a-zA-Z0-9_-]+$ && ${CLIENT_EXISTS} == '0' && ${#CLIENT_NAME} -lt 16 ]]; do
+	until [[ ${CLIENT_EXISTS} == '0' ]]; do
 		read -rp "Client name: " -e CLIENT_NAME
 		CLIENT_EXISTS=$(grep -c -E "^### Client ${CLIENT_NAME}\$" "/etc/wireguard/${SERVER_WG_NIC}.conf")
 
@@ -321,7 +333,6 @@ function newClient() {
 
 	BASE_IP=$(echo "$SERVER_WG_IPV4" | awk -F '.' '{ print $1"."$2"."$3 }')
 	until [[ ${IPV4_EXISTS} == '0' ]]; do
-		read -rp "Client WireGuard IPv4: ${BASE_IP}." -e -i "${DOT_IP}" DOT_IP
 		CLIENT_WG_IPV4="${BASE_IP}.${DOT_IP}"
 		IPV4_EXISTS=$(grep -c "$CLIENT_WG_IPV4/32" "/etc/wireguard/${SERVER_WG_NIC}.conf")
 
@@ -334,7 +345,6 @@ function newClient() {
 
 	BASE_IP=$(echo "$SERVER_WG_IPV6" | awk -F '::' '{ print $1 }')
 	until [[ ${IPV6_EXISTS} == '0' ]]; do
-		read -rp "Client WireGuard IPv6: ${BASE_IP}::" -e -i "${DOT_IP}" DOT_IP
 		CLIENT_WG_IPV6="${BASE_IP}::${DOT_IP}"
 		IPV6_EXISTS=$(grep -c "${CLIENT_WG_IPV6}/128" "/etc/wireguard/${SERVER_WG_NIC}.conf")
 
@@ -401,21 +411,9 @@ function revokeClient() {
 		echo "You have no existing clients!"
 		exit 1
 	fi
-
-	echo ""
-	echo "Select the existing client you want to revoke"
-	grep -E "^### Client" "/etc/wireguard/${SERVER_WG_NIC}.conf" | cut -d ' ' -f 3 | nl -s ') '
-	until [[ ${CLIENT_NUMBER} -ge 1 && ${CLIENT_NUMBER} -le ${NUMBER_OF_CLIENTS} ]]; do
-		if [[ ${CLIENT_NUMBER} == '1' ]]; then
-			read -rp "Select one client [1]: " CLIENT_NUMBER
-		else
-			read -rp "Select one client [1-${NUMBER_OF_CLIENTS}]: " CLIENT_NUMBER
-		fi
-	done
-
-	# match the selected number to a client name
-	CLIENT_NAME=$(grep -E "^### Client" "/etc/wireguard/${SERVER_WG_NIC}.conf" | cut -d ' ' -f 3 | sed -n "${CLIENT_NUMBER}"p)
-
+ 
+	CLIENT_NAME=$1
+ 
 	# remove [Peer] block matching $CLIENT_NAME
 	sed -i "/^### Client ${CLIENT_NAME}\$/,/^$/d" "/etc/wireguard/${SERVER_WG_NIC}.conf"
 
@@ -523,8 +521,34 @@ initialCheck
 
 # Check if WireGuard is already installed and load params
 if [[ -e /etc/wireguard/params ]]; then
-	source /etc/wireguard/params
-	manageMenu
+	# Проверка наличия переданных аргументов командной строки
+	if [[ $# -ge 2 ]]; then
+    	    # Получение аргументов командной строки
+    	    COMMAND="$1"
+    	    ARGUMENT="$2"
+
+    	    case "${COMMAND}" in
+        	"newClient")
+            	    newClient "${ARGUMENT}"
+            	    ;;
+        	"listClients")
+            	    listClients
+                    ;;
+        	"revokeClient")
+                    revokeClient
+                    ;;
+         	"uninstallWireGuard")
+            	    uninstallWg
+                    ;;
+        	*)
+            	    echo "Invalid command: ${COMMAND}"
+                    exit 1
+                    ;;
+            esac
+	else
+    	    echo "Please provide command and argument."
+            exit 1
+        fi
 else
 	installWireGuard
 fi

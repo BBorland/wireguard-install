@@ -481,33 +481,45 @@ initialCheck
 # Check if WireGuard is already installed and load params
 if [[ -e /etc/wireguard/wg0.conf ]]; then
 	# Проверка наличия переданных аргументов командной строки
+# Check if command-line arguments are provided
 	if [[ $# -ge 1 ]]; then
-    	    # Получение аргументов командной строки
-    	    COMMAND="$1"
-    	    ARGUMENT="$2"
+    		# Get the command from command-line arguments
+    		COMMAND="$1"
 
-    	    case "${COMMAND}" in
-        	"newClient")
-            	    newClient "${ARGUMENT}"
-            	    ;;
-        	"listClients")
-            	    listClients
-                    ;;
-        	"revokeClient")
-                    revokeClient "${ARGUMENT}"
-                    ;;
-         	"uninstallWg")
-            	    uninstallWg
-                    ;;
-        	*)
-            	    echo "Invalid command: ${COMMAND}"
-                    exit 1
-                    ;;
-            esac
+    		case "${COMMAND}" in
+        		"newClient")
+            		if [[ $# -ge 2 ]]; then
+                		ARGUMENT="$2"
+                		newClient "${ARGUMENT}"
+            		else
+                		echo "Please provide an argument for the 'newClient' command."
+                		exit 1
+            		fi
+            		;;
+        		"listClients")
+            		listClients
+            		;;
+        		"revokeClient")
+            		if [[ $# -ge 2 ]]; then
+                		ARGUMENT="$2"
+                		revokeClient "${ARGUMENT}"
+            		else
+                		echo "Please provide an argument for the 'revokeClient' command."
+                		exit 1
+            		fi
+            		;;
+        		"uninstallWg")
+           		uninstallWg
+            		;;
+        		*)
+            		echo "Invalid command: ${COMMAND}"
+            		exit 1
+            		;;
+    		esac
 	else
-    	    echo "Please provide command and argument."
-            exit 1
-        fi
+    		echo "Please provide a command."
+    		exit 1
+	fi
 else
 	installWireGuard
 fi

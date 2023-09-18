@@ -118,6 +118,14 @@ function installWireGuard() {
 	installQuestions
 
  	SERVER_WG_NIC="wg0"
+  	SERVER_PORT=59000
+   	SERVER_WG_IPV4="10.66.66.1"
+    	SERVER_WG_IPV6="fd42:42:42::1"
+     	CLIENT_DNS_1="1.1.1.1"
+      	CLIENT_DNS_2="1.0.0.1"
+       	ALLOWED_IPS="0.0.0.0/0,::/0"
+    	
+   	
 
 	# Install WireGuard tools and module
 	if [[ ${OS} == 'ubuntu' ]] || [[ ${OS} == 'debian' && ${VERSION_ID} -gt 10 ]]; then
@@ -169,14 +177,14 @@ function installWireGuard() {
 	echo "SERVER_PUB_IP=${SERVER_PUB_IP}
 SERVER_PUB_NIC=${SERVER_PUB_NIC}
 SERVER_WG_NIC=${SERVER_WG_NIC}
-SERVER_WG_IPV4=10.66.66.1
-SERVER_WG_IPV6=fd42:42:42::1
-SERVER_PORT=59000
+SERVER_WG_IPV4=${SERVER_WG_IPV4}
+SERVER_WG_IPV6=${SERVER_WG_IPV6}
+SERVER_PORT=${SERVER_PORT}
 SERVER_PRIV_KEY=${SERVER_PRIV_KEY}
 SERVER_PUB_KEY=${SERVER_PUB_KEY}
-CLIENT_DNS_1=1.1.1.1
-CLIENT_DNS_2=1.0.0.1
-ALLOWED_IPS=0.0.0.0/0,::/0" >/etc/wireguard/${SERVER_WG_NIC}.conf
+CLIENT_DNS_1=${CLIENT_DNS_1}
+CLIENT_DNS_2=${CLIENT_DNS_2}
+ALLOWED_IPS=${ALLOWED_IPS}" >/etc/wireguard/${SERVER_WG_NIC}.conf
 
 	# Add server interface
 	echo "[Interface]

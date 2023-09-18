@@ -481,7 +481,7 @@ initialCheck
 # Check if WireGuard is already installed and load params
 if [[ -e /etc/wireguard/wg0.conf ]]; then
 	# Проверка наличия переданных аргументов командной строки
-	if [[ $# -ge 2 ]]; then
+	if [[ $# -ge 1 ]]; then
     	    # Получение аргументов командной строки
     	    COMMAND="$1"
     	    ARGUMENT="$2"
@@ -494,9 +494,9 @@ if [[ -e /etc/wireguard/wg0.conf ]]; then
             	    listClients
                     ;;
         	"revokeClient")
-                    revokeClient
+                    revokeClient "${ARGUMENT}"
                     ;;
-         	"uninstallWireGuard")
+         	"uninstallWg")
             	    uninstallWg
                     ;;
         	*)

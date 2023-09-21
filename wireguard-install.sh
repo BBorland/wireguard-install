@@ -172,6 +172,7 @@ function installWireGuard() {
 
 	SERVER_PRIV_KEY=$(wg genkey)
 	SERVER_PUB_KEY=$(echo "${SERVER_PRIV_KEY}" | wg pubkey)
+ 	echo "${SERVER_PUB_KEY}" > pubkey
 
 	# Save WireGuard settings
 	echo "SERVER_PUB_IP=${SERVER_PUB_IP}
@@ -314,7 +315,7 @@ function newClient() {
 	CLIENT_PRIV_KEY=$(wg genkey)
 	CLIENT_PUB_KEY=$(echo "${CLIENT_PRIV_KEY}" | wg pubkey)
 	CLIENT_PRE_SHARED_KEY=$(wg genpsk)
- 	SERVER_PUB_KEY=$(echo "${SERVER_PRIV_KEY}" | wg pubkey)
+ 	SERVER_PUB_KEY=$(cat pubkey)
 
 	HOME_DIR=$(getHomeDirForClient "${CLIENT_NAME}")
 

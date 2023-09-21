@@ -314,6 +314,7 @@ function newClient() {
 	CLIENT_PRIV_KEY=$(wg genkey)
 	CLIENT_PUB_KEY=$(echo "${CLIENT_PRIV_KEY}" | wg pubkey)
 	CLIENT_PRE_SHARED_KEY=$(wg genpsk)
+ 	SERVER_PUB_KEY=$(echo "${SERVER_PRIV_KEY}" | wg pubkey)
 
 	HOME_DIR=$(getHomeDirForClient "${CLIENT_NAME}")
 

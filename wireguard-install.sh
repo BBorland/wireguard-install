@@ -312,7 +312,7 @@ function newClient() {
 
 	# Generate key pair for the client
 	CLIENT_PRIV_KEY=$(wg genkey)
-	CLIENT_PUB_KEY=$(wg pubkey < echo "${CLIENT_PRIV_KEY}")
+	CLIENT_PUB_KEY=$(echo "${CLIENT_PRIV_KEY}" | wg pubkey)
 	CLIENT_PRE_SHARED_KEY=$(wg genpsk)
 
 	HOME_DIR=$(getHomeDirForClient "${CLIENT_NAME}")

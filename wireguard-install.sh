@@ -392,8 +392,8 @@ function uninstallWg() {
 	if [[ $REMOVE == 'y' ]]; then
 		checkOS
 
-		systemctl stop "wg-quick@${SERVER_WG_NIC}"
-		systemctl disable "wg-quick@${SERVER_WG_NIC}"
+		systemctl stop "wg-quick@wg0"
+		systemctl disable "wg-quick@wg0"
 
 		if [[ ${OS} == 'ubuntu' ]]; then
 			apt-get remove -y wireguard wireguard-tools qrencode
@@ -418,6 +418,7 @@ function uninstallWg() {
 
 		rm -rf /etc/wireguard
 		rm -f /etc/sysctl.d/wg.conf
+  		rm -f wg0-client*
 
 		# Reload sysctl
 		sysctl --system

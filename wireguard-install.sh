@@ -419,6 +419,7 @@ function uninstallWg() {
 		rm -rf /etc/wireguard
 		rm -f /etc/sysctl.d/wg.conf
   		rm -f wg0-client*
+    		ip link set down wg0
 
 		# Reload sysctl
 		sysctl --system

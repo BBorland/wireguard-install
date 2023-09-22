@@ -423,7 +423,7 @@ function uninstallWg() {
 		sysctl --system
 
 		# Check if WireGuard is running
-		systemctl is-active --quiet "wg-quick@${SERVER_WG_NIC}"
+		systemctl is-active --quiet "wg-quick@wg0"
 		WG_RUNNING=$?
 
 		if [[ ${WG_RUNNING} -eq 0 ]]; then

@@ -271,6 +271,7 @@ function newClient() {
 			echo ""
 			echo -e "${ORANGE}A client with the specified name was already created, please choose another name.${NC}"
 			echo ""
+   			exit 1
 		fi
 	done
 
@@ -350,18 +351,18 @@ AllowedIPs = ${CLIENT_WG_IPV4}/32,${CLIENT_WG_IPV6}/128" >>"/etc/wireguard/${SER
 }
 
 function listClients() {
-	NUMBER_OF_CLIENTS=$(grep -c -E "^### Client" "/etc/wireguard/${SERVER_WG_NIC}.conf")
+	NUMBER_OF_CLIENTS=$(grep -c -E "^### Client" "/etc/wireguard/wg0.conf")
 	if [[ ${NUMBER_OF_CLIENTS} -eq 0 ]]; then
 		echo ""
 		echo "You have no existing clients!"
 		exit 1
 	fi
 
-	grep -E "^### Client" "/etc/wireguard/${SERVER_WG_NIC}.conf" | cut -d ' ' -f 3 | nl -s ') '
+	grep -E "^### Client" "/etc/wireguard/wg0.conf" | cut -d ' ' -f 3 | nl -s ') '
 }
 
 function revokeClient() {
-	NUMBER_OF_CLIENTS=$(grep -c -E "^### Client" "/etc/wireguard/${SERVER_WG_NIC}.conf")
+	NUMBER_OF_CLIENTS=$(grep -c -E "^### Client" "/etc/wireguard/wg0.conf")
 	if [[ ${NUMBER_OF_CLIENTS} == '0' ]]; then
 		echo ""
 		echo "You have no existing clients!"
@@ -371,15 +372,15 @@ function revokeClient() {
 	CLIENT_NAME=$1
  
 	# remove [Peer] block matching $CLIENT_NAME
-	sed -i "/^### Client ${CLIENT_NAME}\$/,/^$/d" "/etc/wireguard/${SERVER_WG_NIC}.conf"
+	sed -i "/^### Client ${CLIENT_NAME}\$/,/^$/d" "/etc/wireguard/wg0.conf"
 
 	# remove generated client file
 	HOME_DIR=$(getHomeDirForClient "${CLIENT_NAME}")
-	rm -f "${HOME_DIR}/${SERVER_WG_NIC}-client-${CLIENT_NAME}.conf"
- 	rm -f "${HOME_DIR}/${SERVER_WG_NIC}-client-${CLIENT_NAME}.png"
+	rm -f "${HOME_DIR}/wg0-client-${CLIENT_NAME}.conf"
+ 	rm -f "${HOME_DIR}/wg0-client-${CLIENT_NAME}.png"
 
 	# restart wireguard to apply changes
-	wg syncconf "${SERVER_WG_NIC}" <(wg-quick strip "${SERVER_WG_NIC}")
+	wg syncconf "wg0" <(wg-quick strip "wg0")
 }
 
 function uninstallWg() {
